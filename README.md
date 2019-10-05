@@ -21,7 +21,7 @@ If you want the contextual menu accessible with right click, here's how to do it
 * Right click on shell -> New -> Key
 * Name it however you want, it's the name that will appear in the contextual menu
 (I named it "Simple Renamer")
-*Right click on the folder you just created -> New -> Key
+* Right click on the folder you just created -> New -> Key
 * Name it "command"
 * Click on command, in the right panel there should be a single entry with the values: 
 (Default)    REG_SZ    (value not set)
