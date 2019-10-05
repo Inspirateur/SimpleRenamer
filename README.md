@@ -27,9 +27,9 @@ If you want the contextual menu accessible with right click, here's how to do it
 (Default)    REG_SZ    (value not set)
 * Double click on (Default), this will open a pop-up with 2 fields:
 Value name (not editable) and  Value data
-* Put the path to the main.exe you got from Step 1
+* Put the path to the main.exe you got from Step 1 in value data
 For example mine was (quotes included): "D:\Repos\SimpleRenamer\dist\main\main.exe"
 
 And it's done, whenever you right click in a folder of your file explorer like I did in the preview, 
-the entry "Simple Renamer" (or whatever you named it) should be visible, and clicking on it will execute 
+the entry "Simple Renamer" (or whatever name you gave it) should be visible, and clicking on it will execute 
 the simple renamer in the folder.
