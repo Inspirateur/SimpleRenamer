@@ -1,14 +1,19 @@
 # SimpleRenamer
-A prototype for a simple and smart bulk file renamer made with Python 3.7
+A prototype for a simple and smart bulk file renamer made with Python 3.7.
+The motive behind is that most file renamers are complex tools (often closed source)
+that require you to write some kind of regular expression to target the files you want to rename yourself.
+This is good for professionals, but it's out of reach for a casual user.
+What my software does to adress this problem is that **it looks for patterns** in file names itself !
 
 Presentation: https://www.youtube.com/watch?v=ADsyiEJWdpU&feature=youtu.be
+
 
 ## How to install it:
 **Step 1**:
 
-You can either clone the repos, install the dependencies and build it yourself with pyinstaller main.py
-OR 
 Get my build for Windows 10 in the releases *(might work with Windows version under 10 I haven't tried)*
+OR 
+You can either clone the repos, install the dependencies and build it yourself with `pyinstaller main.py`
 
 At this point you can invoke it from the command line and it will execute from the console's location.
 
@@ -33,3 +38,32 @@ For example mine was (quotes included): "D:\Repos\SimpleRenamer\dist\main\main.e
 And it's done, whenever you right click in a folder of your file explorer like I did in the preview, 
 the entry "Simple Renamer" (or whatever name you gave it) should be visible, and clicking on it will execute 
 the simple renamer in the folder.
+
+
+## How to use it:
+Right click in a folder with files you want to rename, 
+the program will look for patterns in the file titles on its own, 
+and display a small window with every pattern it found, as well as a text input field to rename it.
+Patterns look like this:
+```
+Game of Thrones - E/a/S/b/ EnSub 1080p.mkv
+```
+The /a/ and /b/ are **variables**, this could be the episode or season number for example.
+
+In my example you could rename it to:
+```
+Game of Thrones - S/b/E/a/.mkv
+```
+So every title that looked like this:
+```
+Game of Thrones - E01S8 EnSub 1080p.mkv
+```
+Will be turned into:
+```
+Game of Thrones - S8E01.mkv
+```
+
+## To-Do:
+* Make an installer for Windows, Linux, Mac
+* Make the window cleaner/prettier
+* Pad the numbers
