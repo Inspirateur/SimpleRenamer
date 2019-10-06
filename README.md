@@ -1,6 +1,6 @@
 # SimpleRenamer
 
-<a href="https://www.youtube.com/watch?v=ADsyiEJWdpU&feature=youtu.be">
+<a href="https://www.youtube.com/watch?v=ADsyiEJWdpU&feature=youtu.be" target="_blank">
 <img src="https://user-images.githubusercontent.com/27065646/66266362-66a3fa80-e824-11e9-90dd-4fa233ce3652.png" height="40%" width="40%" align="right">
 </a>
 
