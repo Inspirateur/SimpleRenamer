@@ -3,6 +3,7 @@ import os
 import tkinter.filedialog
 import tkinter as tk
 import re
+# NOTE: build with pyinstaller --noconsole main.py
 revar = re.compile("/[a-z]/")
 
 
@@ -76,7 +77,7 @@ def keystr(key):
 
 
 def ask_user(parsed):
-	def show_entry_fields():
+	def show_entry_fields(_=None):
 		for k in range(len(keyorder)):
 			userinput = entries[k].get().strip()
 			if userinput:
@@ -95,16 +96,23 @@ def ask_user(parsed):
 	master.title("Simple Renamer")
 	entries = []
 	keyorder = []
+	tk.Label(
+		master,
+		text=f"Found {len(parsed)} template{'s' if len(parsed) > 1 else ''}:"
+	).grid(row=0)
 	for i, key in enumerate(parsed):
 		keyorder.append(key)
 		keytxt = keystr(key)
-		tk.Label(master, text=keytxt, width=len(keytxt)).grid(row=i*2)
-		entries.append(tk.Entry(master, width=len(keytxt)))
-		entries[-1].grid(row=i*2+1)
+		width = max(int(len(keytxt)*1.2+20), 30)
+		tk.Label(master, text=keytxt+f"  ({len(parsed[key])} files)", width=width).grid(row=(i+1)*2, pady=(10, 0))
+		entries.append(tk.Entry(master, width=width))
+		entries[-1].grid(row=(i+1)*2+1)
 		entries[-1].insert(tk.END, keytxt)
 
-	tk.Button(master, text='Cancel', command=cancel).grid(row=3, column=0, sticky=tk.W, pady=4)
-	tk.Button(master, text='Apply', command=show_entry_fields).grid(row=3, column=1, sticky=tk.W, pady=4)
+	master.bind('<Return>', show_entry_fields)
+	tk.Button(master, text='Cancel', command=cancel).grid(row=(len(parsed)+1)*2, column=0, sticky=tk.W, pady=4)
+	tk.Button(master, text='Apply', command=show_entry_fields).grid(row=(len(parsed)+1)*2, column=1, sticky=tk.W, pady=4)
+	master.protocol("WM_DELETE_WINDOW", cancel)
 	tk.mainloop()
 
 	return keysuser, valsuser
