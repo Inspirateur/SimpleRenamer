@@ -19,18 +19,18 @@ At this point you can invoke it from the command line and it will execute from t
 
 **Step 2**:  
 If you want the contextual menu accessible with right click, here's how to do it in Windows 10:  
-* Search "regedit" on the Windows start menu, run it
+* Search `regedit` on the Windows start menu, run it
 * Find `HKEY_CLASSES_ROOT\Directory\Background\shell\` *(NOT the same as `HKEY_CLASSES_ROOT\Directory\shell\`)*
-* Right click on shell -> New -> Key
+* Right click on `shell` -> `New` -> `Key`
 * Name it however you want, it's the name that will appear in the contextual menu
-(I named it "Simple Renamer")
-* Right click on the folder you just created -> New -> Key
-* Name it "command"
-* Click on command, in the right panel there should be a single entry with the values:   
+(I named it `Simple Renamer`)
+* Right click on the folder you just created -> `New` -> `Key`
+* Name it `command`
+* Click on `command`, in the right panel there should be a single entry with the values:   
 (Default) &emsp; REG_SZ &emsp; (value not set)
-* Double click on (Default), this will open a pop-up with 2 fields:  
+* Double click on `(Default)`, this will open a pop-up with 2 fields:  
 `Value name` (not editable) and `Value data`
-* Put the path to the main.exe you got from Step 1 in `Value data`  
+* Put the path to the `main.exe` you got from **Step 1** in `Value data`  
 For example mine was (quotes included): `"D:\Repos\SimpleRenamer\dist\main\main.exe"`
 
 And it's done, whenever you right click in a folder of your file explorer like I did in the preview, 
