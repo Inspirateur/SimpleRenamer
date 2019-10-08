@@ -26,11 +26,11 @@ If you want the contextual menu accessible with right click, here's how to do it
 (I named it "Simple Renamer")
 * Right click on the folder you just created -> New -> Key
 * Name it "command"
-* Click on command, in the right panel there should be a single entry with the values: 
-(Default)    REG_SZ    (value not set)
-* Double click on (Default), this will open a pop-up with 2 fields:
-Value name (not editable) and  Value data
-* Put the path to the main.exe you got from Step 1 in value data
+* Click on command, in the right panel there should be a single entry with the values:   
+(Default) &emsp; REG_SZ &emsp; (value not set)
+* Double click on (Default), this will open a pop-up with 2 fields:  
+`Value name` (not editable) and `Value data`
+* Put the path to the main.exe you got from Step 1 in value data  
 For example mine was (quotes included): `"D:\Repos\SimpleRenamer\dist\main\main.exe"`
 
 And it's done, whenever you right click in a folder of your file explorer like I did in the preview, 
