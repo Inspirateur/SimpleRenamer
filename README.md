@@ -6,21 +6,19 @@
 
 A prototype for a simple and smart bulk file renamer made with Python 3.7.
 The motive behind is that most file renamers are complex tools (often closed source)
-that require you to write some kind of regular expression to target the files you want to rename yourself. This is good for professionals, but it's out of reach for a casual user. What my software does to address this problem is that **it looks for patterns** in file names itself!
+that require you to write some kind of regular expression to target the files you want to rename yourself. This is good for professionals, but it's out of reach for a casual user.  
+What my software does to address this problem is that **it looks for patterns** in file names itself!
 
 ## How to install it:
-**Step 1**:
-
-Get my build for Windows 10 in the releases *(might work with Windows version under 10 I haven't tried)*
-OR 
-You can either clone the repo, install the dependencies and build it yourself with `pyinstaller main.py`
+**Step 1**:  
+Get my build for Windows 10 in the releases *(might work with Windows version under 10 I haven't tried)*  
+OR  
+Clone the repo, install the dependencies and build it yourself with `pyinstaller main.py`
 
 At this point you can invoke it from the command line and it will execute from the console's location.
 
-**Step 2**:
-
-If you want the contextual menu accessible with right click, here's how to do it in Windows 10:
-
+**Step 2**:  
+If you want the contextual menu accessible with right click, here's how to do it in Windows 10:  
 * Search "regedit" on the Windows start menu, run it
 * Find `HKEY_CLASSES_ROOT\Directory\Background\shell\`
 * Right click on shell -> New -> Key
@@ -48,8 +46,7 @@ Patterns look like this:
 ```
 Game of Thrones - E/a/S/b/ EnSub 1080p.mkv
 ```
-The `/a/` and `/b/` are **variables**, this could be the episode or season number for example.
-
+The `/a/` and `/b/` are **variables**, this could be the episode or season number for example.  
 In my example you could rename it to:
 ```
 Game of Thrones - S/b/E/a/.mkv
