@@ -12,8 +12,8 @@ What my software does to address this problem is that **it looks for patterns** 
 ## How to install it:
 **Step 1**:  
 Get my build for Windows 10 in the releases *(might work with Windows version under 10 I haven't tried)*  
-OR  
-Clone the repo, install the dependencies and build it yourself with `pyinstaller main.py`
+*OR*  
+Clone the repo, install the dependencies and build it yourself with `pyinstaller --noconsole main.py`
 
 At this point you can invoke it from the command line and it will execute from the console's location.
 
