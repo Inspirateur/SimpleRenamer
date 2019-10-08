@@ -20,7 +20,7 @@ At this point you can invoke it from the command line and it will execute from t
 **Step 2**:  
 If you want the contextual menu accessible with right click, here's how to do it in Windows 10:  
 * Search "regedit" on the Windows start menu, run it
-* Find `HKEY_CLASSES_ROOT\Directory\Background\shell\`
+* Find `HKEY_CLASSES_ROOT\Directory\Background\shell\` *(NOT the same as `HKEY_CLASSES_ROOT\Directory\shell\`)*
 * Right click on shell -> New -> Key
 * Name it however you want, it's the name that will appear in the contextual menu
 (I named it "Simple Renamer")
