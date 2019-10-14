@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['main.py'],
-             pathex=['D:\\Repos\\SimpleRenamer'],
+             pathex=['/mnt/sdb/Projects/SimpleRenamer'],
              binaries=[],
              datas=[],
              hiddenimports=[],

@@ -1,13 +1,19 @@
 from collections import defaultdict
 import os
+import sys
 import tkinter.filedialog
 import tkinter as tk
+import tkinter.ttk as ttk
 import re
-# NOTE: build with pyinstaller --noconsole main.py
-revar = re.compile("/[a-z]/")
+from gui import revar, App
 
 
 def parse_files(filenames):
+	"""
+	Given a list of filenames, build the template dict
+	:param filenames: A list of filename
+	:return: The template dict <key (,), values [(,), ...]>
+	"""
 	# build the <template, [vals]> mapping
 	reg = re.compile(r"\d+(?:\.\d+)?")
 	parsed = defaultdict(list)
@@ -61,64 +67,13 @@ def parse_files(filenames):
 	return parsed
 
 
-def parse_user_key(userkeytxt):
-	userkey = revar.split(userkeytxt)
-	uservars = revar.findall(userkeytxt)
-	uservars = tuple(ord(var[1:-1])-97 for var in uservars)
-	return userkey, uservars
-
-
-def keystr(key):
-	res = ""
-	for i in range(len(key)-1):
-		res += key[i] + f"/{chr(i+97)}/"
-	res += key[-1]
-	return res
-
-
-def ask_user(parsed):
-	def show_entry_fields(_=None):
-		for k in range(len(keyorder)):
-			userinput = entries[k].get().strip()
-			if userinput:
-				keyuser, valuser = parse_user_key(userinput)
-				keysuser[keyorder[k]] = keyuser
-				valsuser[keyorder[k]] = valuser
-		master.quit()
-
-	def cancel():
-		master.quit()
-		raise SystemExit()
-
-	keysuser = {}
-	valsuser = {}
-	master = tk.Tk()
-	master.title("Simple Renamer")
-	entries = []
-	keyorder = []
-	tk.Label(
-		master,
-		text=f"Found {len(parsed)} template{'s' if len(parsed) > 1 else ''}:"
-	).grid(row=0)
-	for i, key in enumerate(parsed):
-		keyorder.append(key)
-		keytxt = keystr(key)
-		width = max(int(len(keytxt)*1.2+20), 30)
-		tk.Label(master, text=keytxt+f"  ({len(parsed[key])} files)", width=width).grid(row=(i+1)*2, pady=(10, 0))
-		entries.append(tk.Entry(master, width=width))
-		entries[-1].grid(row=(i+1)*2+1)
-		entries[-1].insert(tk.END, keytxt)
-
-	master.bind('<Return>', show_entry_fields)
-	tk.Button(master, text='Cancel', command=cancel).grid(row=(len(parsed)+1)*2, column=0, sticky=tk.W, pady=4)
-	tk.Button(master, text='Apply', command=show_entry_fields).grid(row=(len(parsed)+1)*2, column=1, sticky=tk.W, pady=4)
-	master.protocol("WM_DELETE_WINDOW", cancel)
-	tk.mainloop()
-
-	return keysuser, valsuser
-
-
 def build_name(key, val):
+	"""
+	Use a key and a val to rebuild a filename
+	:param key: Tuple like ("blabla", "bla", ".ext")
+	:param val: Tuple like ("05", "12")
+	:return: filename as string like "blabla05bla12.ext"
+	"""
 	name = key[0]
 	for i in range(1, len(key)):
 		name += val[i-1]
@@ -127,6 +82,14 @@ def build_name(key, val):
 
 
 def global_rename(path, parsed, keysuser, valsuser):
+	"""
+	Given the path, the template dict, the user keys and user val indexes,
+	rename the files.
+	:param path: Path of the files
+	:param parsed: Template dict <key (,), values [(,), ...]>
+	:param keysuser: Mapping old key->user key
+	:param valsuser: Mapping old key->value indexes
+	"""
 	# build the file name mapping
 	newfilenames = {}
 	for key in parsed:
@@ -147,16 +110,29 @@ def global_rename(path, parsed, keysuser, valsuser):
 
 
 if __name__ == '__main__':
-	root = tk.Tk()
-	root.withdraw()
-	# _path = tk.filedialog.askdirectory()
-	_path = os.getcwd()
-	(_, _, _files) = next(os.walk(_path))
-	_parsed = parse_files(_files)
-	if _parsed:
-		try:
-			_keysuser, _valsuser = ask_user(_parsed)
-			global_rename(_path, _parsed, _keysuser, _valsuser)
-		except SystemExit:
-			# allows us to exit gracefully
-			pass
+	# NOTE: build with pyinstaller --noconsole main.py
+	try:
+		if getattr(sys, 'frozen', False):
+			# .EXE
+			_path = os.getcwd()
+		else:
+			# DEBUG
+			_root = tk.Tk()
+			_root.withdraw()
+			_path = tk.filedialog.askdirectory()
+			if _path == ():
+				raise SystemExit()
+			_root.destroy()
+		(_, _, _files) = next(os.walk(_path))
+		_parsed = parse_files(_files)
+		if _parsed:
+			_root = tk.Tk()
+			_root.style = ttk.Style()
+			# ('clam', 'alt', 'default', 'classic')
+			_root.style.theme_use("clam")
+			_app = App(_root, _parsed)
+			_root.mainloop()
+			global_rename(_path, _parsed, _app.keysuser, _app.valsuser)
+	except SystemExit:
+		# allows us to exit gracefully
+		pass
