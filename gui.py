@@ -69,22 +69,22 @@ class App:
 			width = max(int(len(keytxt)*1.2+20), 30)
 			# add a label with the key str and the number of affected files
 			ttk.Label(frame, text=keytxt+f"  ({len(parsed[key])} files)", width=width, font=font).grid(
-				row=(i+1)*2, pady=(10, 0)
+				row=(i+1)*2, pady=(10, 0), padx=8
 			)
 			# add the corresponding entry
 			self.entries.append(ttk.Entry(frame, width=width, font=font))
-			self.entries[-1].grid(row=(i+1)*2+1)
+			self.entries[-1].grid(row=(i+1)*2+1, padx=4)
 			self.entries[-1].insert(tk.END, keytxt)
 
 		# bind ENTER key to APPLY
 		self.root.bind('<Return>', self.retrieve_user_input)
 		# Add a Cancel button (same effect as closing the window)
 		ttk.Button(frame, text='Cancel', command=self.cancel).grid(
-			row=(len(parsed)+1)*2, column=0, sticky=tk.W, pady=4
+			row=(len(parsed)+1)*2, column=0, sticky=tk.W, pady=8, padx=8
 		)
 		# Add an APPLY button
 		ttk.Button(frame, text='Apply', command=self.retrieve_user_input).grid(
-			row=(len(parsed)+1)*2, column=0, sticky=tk.E, pady=4
+			row=(len(parsed)+1)*2, column=0, sticky=tk.E, pady=8, padx=8
 		)
 		# bind the cancel function to windows closing event
 		self.root.protocol("WM_DELETE_WINDOW", self.cancel)

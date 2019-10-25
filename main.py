@@ -110,7 +110,7 @@ def global_rename(path, parsed, keysuser, valsuser):
 
 
 if __name__ == '__main__':
-	# NOTE: build with pyinstaller --noconsole main.py
+	# NOTE: build with pyinstaller --noconsole main.spec
 	try:
 		if getattr(sys, 'frozen', False):
 			# .EXE
