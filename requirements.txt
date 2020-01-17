@@ -1,2 +1,2 @@
 altgraph==0.16.1
-PyInstaller==3.5
+PyInstaller==3.6
