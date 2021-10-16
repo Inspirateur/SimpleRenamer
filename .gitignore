@@ -1,6 +1,1 @@
-dist/
-build/
-/**__pycache__
-.idea/
-venv/
-test*
+/target
