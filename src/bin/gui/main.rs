@@ -8,7 +8,7 @@ use iced::{
 use itertools::Itertools;
 use nfd2::Response;
 use pathdiff::diff_paths;
-use srenamer::{apply_rename, rename_map};
+use srenamer::{apply_rename, get_rule_rep, rename_map};
 use std::collections::HashMap;
 use std::ffi::OsStr;
 use std::{env, path::PathBuf, str::FromStr};
@@ -23,7 +23,7 @@ enum Message {
 #[derive(Default)]
 struct Flags {
     cwd: PathBuf,
-    file: PathBuf,
+    file: String,
 }
 
 #[derive(Default)]
@@ -33,7 +33,7 @@ struct Srenamer {
     apply: button::State,
     browse: button::State,
     preview: scrollable::State,
-    file: PathBuf,
+    file: String,
     cwd: PathBuf,
     rename: HashMap<PathBuf, PathBuf>,
     palette: Palette,
@@ -47,12 +47,13 @@ impl Application for Srenamer {
     type Flags = Flags;
 
     fn new(flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
+        let file = get_rule_rep(&flags.cwd, &flags.file);
         (
             Self {
-                file: flags.file.clone(),
+                file: file.clone(),
                 cwd: flags.cwd.clone(),
-                input_value: flags.file.to_string_lossy().to_string(),
-                rename: rename_map(&flags.cwd, &flags.file, &flags.file),
+                input_value: file.clone(),
+                rename: rename_map(&flags.cwd, &file, &PathBuf::from(file.clone())),
                 should_exit: false,
                 ..Default::default()
             },
@@ -167,11 +168,7 @@ impl Application for Srenamer {
                 .push(
                     Column::new()
                         .spacing(5)
-                        .push(
-                            Text::new(&self.file.to_string_lossy().to_string())
-                                .size(16)
-                                .color(self.palette.greyed),
-                        )
+                        .push(Text::new(&self.file).size(16).color(self.palette.greyed))
                         .push(
                             Row::new()
                                 .spacing(20)
@@ -228,12 +225,12 @@ fn main() -> iced::Result {
             Ok(response) => match response {
                 Response::Okay(file_path) => {
                     cwd = file_path.parent().unwrap().to_path_buf();
-                    PathBuf::from(file_path.file_name().unwrap())
+                    file_path.file_name().unwrap().to_string_lossy().to_string()
                 }
                 Response::OkayMultiple(file_paths) => {
                     let file_path = &file_paths[0];
                     cwd = file_path.parent().unwrap().to_path_buf();
-                    PathBuf::from(file_path.file_name().unwrap())
+                    file_path.file_name().unwrap().to_string_lossy().to_string()
                 }
                 Response::Cancel => return Ok(()),
             },
@@ -243,16 +240,15 @@ fn main() -> iced::Result {
             }
         }
     } else {
-        let filepath = PathBuf::from(args[1].clone());
-        if let Some(parent) = filepath.parent() {
+        let file_path = PathBuf::from(args[1].clone());
+        if let Some(parent) = file_path.parent() {
             cwd.push(parent);
         }
-        PathBuf::from(filepath.file_name().unwrap())
+        file_path.file_name().unwrap().to_string_lossy().to_string()
     };
-
     Srenamer::run(Settings {
         window: window::Settings {
-            size: (800, 400),
+            size: (800, 500),
             ..Default::default()
         },
         flags: Flags {

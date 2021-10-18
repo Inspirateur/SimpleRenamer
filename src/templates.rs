@@ -7,8 +7,8 @@ use std::fs;
 use std::{collections::HashMap, path::PathBuf};
 
 lazy_static! {
-    static ref RE_TOK: Regex = Regex::new(r"([^\d\W]+|[0-9]+|\W+)").unwrap();
-    static ref RE_WRD: Regex = Regex::new(r"\w|\(\.\+\)|\(\\d\+\)").unwrap();
+    static ref RE_TOK: Regex = Regex::new(r"(\(\\d\+\)|\(\.\+\)|[^\d\W]+|[0-9]+|\W+)").unwrap();
+    static ref RE_PUNCT: Regex = Regex::new(r"^[\s,._;:]$").unwrap();
     pub static ref RE_UNESC: Regex =
         Regex::new(r"\\([\\\.\+\*\?\(\)\|\[\]\{\}\^\$\#\&\-\~])").unwrap();
 }
@@ -33,7 +33,7 @@ fn extract_rule(seq1: &Vec<String>, seq2: &Vec<String>) -> Option<String> {
             return None;
         }
         let var_is_num = var1.parse::<u16>().is_ok() && var2.parse::<u16>().is_ok();
-        if var_is_num || RE_WRD.is_match(&cst) {
+        if var_is_num || !RE_PUNCT.is_match(&cst) || m.size == 0 {
             if var1.len() > 0 {
                 if var_is_num {
                     rule += r"(\d+)";
@@ -116,7 +116,11 @@ pub fn templates_in(path: PathBuf) -> HashMap<String, Vec<String>> {
         .unwrap()
         .map(|path| path.unwrap().file_name().to_str().unwrap().to_string())
         .collect();
-    templates(&filenames)
+    let temps = templates(&filenames);
+    for k in temps.keys() {
+        println!("{}", k);
+    }
+    temps
 }
 
 #[cfg(test)]
