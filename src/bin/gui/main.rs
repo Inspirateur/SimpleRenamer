@@ -36,9 +36,26 @@ struct Srenamer {
     file: String,
     cwd: PathBuf,
     rename: HashMap<PathBuf, PathBuf>,
+    dupes: HashMap<PathBuf, usize>,
     palette: Palette,
     error_msg: String,
     should_exit: bool,
+}
+
+fn update_rename_map(srenamer: &mut Srenamer) {
+    srenamer.rename = rename_map(
+        &srenamer.cwd,
+        &srenamer.file,
+        &PathBuf::from_str(&srenamer.input_value).unwrap(),
+    );
+    srenamer.dupes = srenamer.rename.values().cloned().counts();
+    let dupe_count = srenamer.rename.len() - srenamer.dupes.len();
+    if dupe_count > 0 {
+        srenamer.error_msg = format!(
+            "{} files have duplicate name, cannot rename as they would be lost.",
+            dupe_count
+        );
+    }
 }
 
 impl Application for Srenamer {
@@ -48,17 +65,15 @@ impl Application for Srenamer {
 
     fn new(flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
         let file = get_rule_rep(&flags.cwd, &flags.file);
-        (
-            Self {
-                file: file.clone(),
-                cwd: flags.cwd.clone(),
-                input_value: file.clone(),
-                rename: rename_map(&flags.cwd, &file, &PathBuf::from(file.clone())),
-                should_exit: false,
-                ..Default::default()
-            },
-            Command::none(),
-        )
+        let mut res = Self {
+            file: file.clone(),
+            cwd: flags.cwd.clone(),
+            input_value: file.clone(),
+            should_exit: false,
+            ..Default::default()
+        };
+        update_rename_map(&mut res);
+        (res, Command::none())
     }
 
     fn title(&self) -> String {
@@ -81,11 +96,7 @@ impl Application for Srenamer {
         match message {
             Message::EditFileName(value) => {
                 self.input_value = value;
-                self.rename = rename_map(
-                    &self.cwd,
-                    &self.file,
-                    &PathBuf::from_str(&self.input_value).unwrap(),
-                );
+                update_rename_map(self);
             }
             Message::Browse => match nfd2::open_pick_folder(None) {
                 Ok(response) => match response {
@@ -103,11 +114,7 @@ impl Application for Srenamer {
                                 .to_string_lossy()
                                 .to_string()
                                 .replace("\\", "/");
-                            self.rename = rename_map(
-                                &self.cwd,
-                                &self.file,
-                                &PathBuf::from_str(&self.input_value).unwrap(),
-                            );
+                            update_rename_map(self);
                         } else {
                             self.error_msg =
                                 format!("Couldn't get relative path from {:?}", folder_path);
@@ -150,7 +157,11 @@ impl Application for Srenamer {
                     .push(
                         Text::new(new.file_name().unwrap().to_string_lossy())
                             .size(16)
-                            .color(self.palette.font),
+                            .color(if self.dupes[new] > 1 {
+                                self.palette.error
+                            } else {
+                                self.palette.font
+                            }),
                     ),
             )
             .width(iced::Length::Fill);
@@ -160,6 +171,11 @@ impl Application for Srenamer {
                 container = container.style(RowOdd(self.palette))
             }
             preview = preview.push(Row::new().push(container));
+        }
+        let mut apply_button = Button::new(&mut self.apply, Text::new("Apply").size(20))
+            .style(ApplyButton(self.palette));
+        if self.rename.len() == self.dupes.len() {
+            apply_button = apply_button.on_press(Message::Apply);
         }
         Container::new(
             Column::new()
@@ -202,15 +218,7 @@ impl Application for Srenamer {
                         ),
                 )
                 .push(preview.height(Length::Fill))
-                .push(
-                    Container::new(
-                        Button::new(&mut self.apply, Text::new("Apply").size(20))
-                            .on_press(Message::Apply)
-                            .style(ApplyButton(self.palette)),
-                    )
-                    .width(Length::Fill)
-                    .center_x(),
-                ),
+                .push(Container::new(apply_button).width(Length::Fill).center_x()),
         )
         .style(self.palette)
         .into()
