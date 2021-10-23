@@ -1,4 +1,4 @@
-use crate::templates::{templates_in, RE_UNESC};
+use crate::templates::templates_in;
 use itertools::Itertools;
 use regex::Regex;
 use std::{collections::HashMap, fs, io, path::PathBuf};
