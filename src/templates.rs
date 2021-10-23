@@ -78,10 +78,6 @@ fn templates(filenames: &Vec<String>) -> HashMap<String, Vec<String>> {
                 .collect()
         })
         .collect();
-    for _fn in &untemplated {
-        println!("{:?}", _fn);
-    }
-    println!("");
     let mut res = HashMap::new();
     // template the files until we cannot find another rule
     while let Some(rule) = find_rule(&untemplated) {
@@ -121,11 +117,7 @@ pub fn templates_in(path: PathBuf) -> HashMap<String, Vec<String>> {
         .unwrap()
         .map(|path| path.unwrap().file_name().to_str().unwrap().to_string())
         .collect();
-    let temps = templates(&filenames);
-    for k in temps.keys() {
-        println!("-> {}", k);
-    }
-    temps
+    templates(&filenames)
 }
 
 #[cfg(test)]
