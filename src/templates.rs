@@ -7,7 +7,8 @@ use std::fs;
 use std::{collections::HashMap, path::PathBuf};
 
 lazy_static! {
-    static ref RE_TOK: Regex = Regex::new(r"(\(\\d\+\)|\(\.\+\)|[^\d\W]+|[0-9]+|\W+)").unwrap();
+    static ref RE_TOK: Regex =
+        Regex::new(r"(\\*\(\\+d\\*\+\\*\)|\\*\(\\*\.\\*\+\\*\)|[^\d\W]+|[0-9]+|\W)").unwrap();
     static ref RE_PUNCT: Regex = Regex::new(r"^[\s,._;:]$").unwrap();
     pub static ref RE_UNESC: Regex =
         Regex::new(r"\\([\\\.\+\*\?\(\)\|\[\]\{\}\^\$\#\&\-\~])").unwrap();
@@ -16,7 +17,7 @@ lazy_static! {
 fn extract_rule(seq1: &Vec<String>, seq2: &Vec<String>) -> Option<String> {
     let mut seq_matcher = SequenceMatcher::new(seq1, seq2);
     // if the 2 sequences are too dissimilar we don't return a rule
-    if seq_matcher.ratio() < 0.5 {
+    if seq_matcher.ratio() < 0.6 {
         return None;
     }
     let (mut _i, mut _j, mut _n) = (0, 0, 0);
@@ -38,7 +39,7 @@ fn extract_rule(seq1: &Vec<String>, seq2: &Vec<String>) -> Option<String> {
                 if var_is_num {
                     rule += r"(\d+)";
                 } else {
-                    rule += "(.+)";
+                    rule += r"(.+)";
                 }
             }
             rule += &regex::escape(&cst);
@@ -77,6 +78,10 @@ fn templates(filenames: &Vec<String>) -> HashMap<String, Vec<String>> {
                 .collect()
         })
         .collect();
+    for _fn in &untemplated {
+        println!("{:?}", _fn);
+    }
+    println!("");
     let mut res = HashMap::new();
     // template the files until we cannot find another rule
     while let Some(rule) = find_rule(&untemplated) {
@@ -118,7 +123,7 @@ pub fn templates_in(path: PathBuf) -> HashMap<String, Vec<String>> {
         .collect();
     let temps = templates(&filenames);
     for k in temps.keys() {
-        println!("{}", k);
+        println!("-> {}", k);
     }
     temps
 }
