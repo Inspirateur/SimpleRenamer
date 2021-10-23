@@ -62,27 +62,28 @@ fn get_rule(templates: &HashMap<String, Vec<String>>, filename: &String) -> Opti
 
 fn get_rename_str(rule: &Regex, a: &String, b: &String) -> String {
     // return the regex replacement to turn a into b
-    let mut res = b.clone();
-    for (i, m) in rule
+    let vars: Vec<String> = rule
         .captures(a)
         .unwrap()
         .iter()
-        .map(|m_opt| m_opt.unwrap().as_str())
-        .enumerate()
         .skip(1)
-        .sorted_by_key(|(_i, m)| -(m.len() as i32))
-    {
-        let re_repl = if m.parse::<u8>().is_ok() {
-            Regex::new(&format!(r"(\D|^){}(\D|$)", m))
-        } else {
-            Regex::new(&format!("(.*){}(.*)", regex::escape(m)))
-        }
-        .unwrap();
-        res = re_repl
-            .replace(&res, format!("${{1}}\\$\\{{{}\\}}${{2}}", i))
-            .to_string();
-    }
-    RE_UNESC.replace_all(&res, r"$1").into_owned()
+        .map(|m_opt| m_opt.unwrap().as_str().to_string())
+        .collect();
+    let var2idx: HashMap<&String, usize> =
+        vars.iter().enumerate().map(|(i, m)| (m, i + 1)).collect();
+    let re_match = Regex::new(
+        &vars
+            .iter()
+            .sorted_by_key(|m| -(m.len() as i32))
+            .map(|m| regex::escape(m))
+            .join("|"),
+    )
+    .unwrap();
+    re_match
+        .replace_all(b, |captures: &regex::Captures| {
+            format!("${{{}}}", var2idx[&captures[0].to_string()])
+        })
+        .to_string()
 }
 
 pub fn rename_map(cwd: &PathBuf, a: &String, b: &PathBuf) -> HashMap<PathBuf, PathBuf> {
