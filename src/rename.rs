@@ -100,8 +100,10 @@ pub fn rename_map(cwd: &PathBuf, a: &String, b: &PathBuf) -> HashMap<PathBuf, Pa
     let templates = templates_in(cwd.clone());
     let mut res: HashMap<PathBuf, PathBuf> = HashMap::new();
     if let Some(rule) = get_rule(&templates, a) {
+        println!("{}", rule);
         let re_rule = Regex::new(&format!("^{}$", rule)).unwrap();
         let rename_rule = get_rename_str(&re_rule, a, &b_name);
+        println!("{}", rename_rule);
         for file in templates.get(&rule).unwrap() {
             res.insert(
                 cwd.join(file.clone()),
