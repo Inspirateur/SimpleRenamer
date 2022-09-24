@@ -3,7 +3,7 @@ mod style;
 use crate::style::*;
 use iced::{
     button, executor, scrollable, text_input, window, Application, Button, Column, Command,
-    Container, Element, HorizontalAlignment, Length, Row, Scrollable, Settings, Text, TextInput,
+    Container, Element, alignment::Horizontal, Length, Row, Scrollable, Settings, Text, TextInput,
 };
 use itertools::Itertools;
 use nfd2::Response;
@@ -90,7 +90,6 @@ impl Application for Srenamer {
     fn update(
         &mut self,
         message: Self::Message,
-        _clipboard: &mut iced::Clipboard,
     ) -> iced::Command<Self::Message> {
         self.error_msg = String::new();
         match message {
@@ -204,7 +203,7 @@ impl Application for Srenamer {
                                         &mut self.browse,
                                         Text::new("Change Dest.")
                                             .size(16)
-                                            .horizontal_alignment(HorizontalAlignment::Center),
+                                            .horizontal_alignment(Horizontal::Center),
                                     )
                                     .padding(5)
                                     .on_press(Message::Browse)
