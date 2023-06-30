@@ -1,230 +1,124 @@
 // #![windows_subsystem = "windows"]
-mod style;
-use crate::style::*;
-use iced::{
-    button, executor, scrollable, text_input, window, Application, Button, Column, Command,
-    Container, Element, alignment::Horizontal, Length, Row, Scrollable, Settings, Text, TextInput,
-};
+use eframe::egui;
+use anyhow::Result;
+use egui::Color32;
 use itertools::Itertools;
 use nfd2::Response;
 use pathdiff::diff_paths;
 use srenamer::{apply_rename, get_rule_rep, rename_map};
-use std::collections::HashMap;
-use std::ffi::OsStr;
-use std::{env, path::PathBuf, str::FromStr};
-
-#[derive(Debug, Clone)]
-enum Message {
-    EditFileName(String),
-    Apply,
-    Browse,
-}
+use std::{env, path::PathBuf, collections::HashMap, str::FromStr, ffi::OsStr};
 
 #[derive(Default)]
-struct Flags {
-    cwd: PathBuf,
-    file: String,
+struct AppState {
+    pub file: String,
+    pub input: String,
+    pub cwd: PathBuf,
+    pub rename: HashMap<PathBuf, PathBuf>,
+    pub dupes: HashMap<PathBuf, usize>,
+    pub error_msg: String
 }
 
-#[derive(Default)]
-struct Srenamer {
-    rename_field: text_input::State,
-    input_value: String,
-    apply: button::State,
-    browse: button::State,
-    preview: scrollable::State,
-    file: String,
-    cwd: PathBuf,
-    rename: HashMap<PathBuf, PathBuf>,
-    dupes: HashMap<PathBuf, usize>,
-    palette: Palette,
-    error_msg: String,
-    should_exit: bool,
-}
+impl AppState {
+    fn new(cc: &eframe::CreationContext<'_>, file: String, cwd: PathBuf) -> Self {
+        // Customize egui here with cc.egui_ctx.set_fonts and cc.egui_ctx.set_visuals.
+        cc.egui_ctx.set_pixels_per_point(1.5);
+        // Restore app state using cc.storage (requires the "persistence" feature).
+        // Use the cc.gl (a glow::Context) to create graphics shaders and buffers that you can use
+        // for e.g. egui::PaintCallback.
+        let mut res = AppState { input: file.clone(), file, cwd, ..Default::default() };
+        res.update_rename();
+        res
+    }
 
-fn update_rename_map(srenamer: &mut Srenamer) {
-    srenamer.rename = rename_map(
-        &srenamer.cwd,
-        &srenamer.file,
-        &PathBuf::from_str(&srenamer.input_value).unwrap(),
-    );
-    srenamer.dupes = srenamer.rename.values().cloned().counts();
-    let dupe_count = srenamer.rename.len() - srenamer.dupes.len();
-    if dupe_count > 0 {
-        srenamer.error_msg = format!(
-            "{} files have duplicate name, cannot rename as they would be lost.",
-            dupe_count
+    fn update_rename(&mut self) {
+        self.rename = rename_map(
+            &self.cwd,
+            &self.file,
+            &PathBuf::from_str(&self.input).unwrap(),
         );
+        self.dupes = self.rename.values().cloned().counts();
+        let dupe_count = self.rename.len() - self.dupes.len();
+        if dupe_count > 0 {
+            self.error_msg = format!(
+                "{} files have duplicate name, cannot rename as they would be lost.",
+                dupe_count
+            );
+        }
     }
 }
 
-impl Application for Srenamer {
-    type Executor = executor::Default;
-    type Message = Message;
-    type Flags = Flags;
-
-    fn new(flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
-        let file = get_rule_rep(&flags.cwd, &flags.file);
-        let mut res = Self {
-            file: file.clone(),
-            cwd: flags.cwd.clone(),
-            input_value: file.clone(),
-            should_exit: false,
-            ..Default::default()
-        };
-        update_rename_map(&mut res);
-        (res, Command::none())
-    }
-
-    fn title(&self) -> String {
-        format!(
-            "Simple renamer - {}/",
-            self.cwd.file_name().unwrap().to_string_lossy()
-        )
-    }
-
-    fn should_exit(&self) -> bool {
-        self.should_exit
-    }
-
-    fn update(
-        &mut self,
-        message: Self::Message,
-    ) -> iced::Command<Self::Message> {
-        self.error_msg = String::new();
-        match message {
-            Message::EditFileName(value) => {
-                self.input_value = value;
-                update_rename_map(self);
-            }
-            Message::Browse => match nfd2::open_pick_folder(None) {
-                Ok(response) => match response {
-                    Response::Okay(folder_path) => {
-                        if let Some(diff) = diff_paths(&folder_path, &self.cwd) {
-                            self.input_value = diff
-                                .join(
-                                    PathBuf::from_str(&self.input_value)
-                                        .unwrap()
-                                        .file_name()
-                                        .unwrap_or(OsStr::new(""))
+impl eframe::App for AppState {
+    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+        egui::CentralPanel::default().show(ctx, |ui| {
+            ui.horizontal(|ui| {
+                ui.vertical(|ui| {
+                    ui.label(self.file.clone());
+                    if ui.text_edit_singleline(&mut self.input).changed() {
+                        self.error_msg = String::new();
+                        self.update_rename()
+                    }
+                });
+                ui.add_space(10.);
+                if ui.button("Change dest").changed() {
+                    match nfd2::open_pick_folder(None) {
+                        Ok(response) => match response {
+                            Response::Okay(folder_path) => {
+                                if let Some(diff) = diff_paths(&folder_path, &self.cwd) {
+                                    self.input = diff
+                                        .join(
+                                            PathBuf::from_str(&self.input)
+                                                .unwrap()
+                                                .file_name()
+                                                .unwrap_or(OsStr::new(""))
+                                                .to_string_lossy()
+                                                .to_string(),
+                                        )
                                         .to_string_lossy()
-                                        .to_string(),
-                                )
-                                .to_string_lossy()
-                                .to_string()
-                                .replace("\\", "/");
-                            update_rename_map(self);
-                        } else {
-                            self.error_msg =
-                                format!("Couldn't get relative path from {:?}", folder_path);
+                                        .to_string()
+                                        .replace("\\", "/");
+                                    self.update_rename();
+                                } else {
+                                    self.error_msg =
+                                        format!("Couldn't get relative path from {:?}", folder_path);
+                                }
+                            }
+                            Response::OkayMultiple(_folder_path) => {
+                                self.error_msg = String::from("Cannot select multiple folders.")
+                            }
+                            Response::Cancel => {}
+                        },
+                        Err(err) => {
+                            self.error_msg = format!("Error: {}", err);
                         }
                     }
-                    Response::OkayMultiple(_folder_path) => {
-                        self.error_msg = String::from("Cannot select multiple folders.")
-                    }
-                    Response::Cancel => {}
-                },
-                Err(err) => {
-                    self.error_msg = format!("Error: {}", err);
                 }
-            },
-            Message::Apply => match apply_rename(&self.rename) {
-                Ok(()) => self.should_exit = true,
-                Err(err) => self.error_msg = format!("{}", err),
-            },
-        };
-        Command::none()
-    }
-
-    fn view(&mut self) -> Element<Self::Message> {
-        let mut preview = Scrollable::new(&mut self.preview).style(self.palette);
-        for (i, (old, new)) in self
-            .rename
-            .iter()
-            .sorted_by_key(|(old, _new)| *old)
-            .enumerate()
-        {
-            let mut container = Container::new(
-                Column::new()
-                    .padding(5)
-                    .spacing(5)
-                    .push(
-                        Text::new(old.file_name().unwrap().to_string_lossy())
-                            .size(16)
-                            .color(self.palette.greyed),
-                    )
-                    .push(
-                        Text::new(new.file_name().unwrap().to_string_lossy())
-                            .size(16)
-                            .color(if self.dupes[new] > 1 {
-                                self.palette.error
-                            } else {
-                                self.palette.font
-                            }),
-                    ),
-            )
-            .width(iced::Length::Fill);
-            if i % 2 == 0 {
-                container = container.style(RowEven(self.palette))
-            } else {
-                container = container.style(RowOdd(self.palette))
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    if ui.button("Apply").clicked() {
+                        match apply_rename(&self.rename) {
+                            Ok(()) => frame.close(),
+                            Err(err) => self.error_msg = format!("{}", err),
+                        }
+                    }
+                });
+            });
+            if self.error_msg.len() > 0 {
+                ui.label(egui::RichText::new(self.error_msg.clone()).color(Color32::from_rgb(200, 20, 50)));
             }
-            preview = preview.push(Row::new().push(container));
-        }
-        let mut apply_button = Button::new(&mut self.apply, Text::new("Apply").size(20))
-            .style(ApplyButton(self.palette));
-        if self.rename.len() == self.dupes.len() {
-            apply_button = apply_button.on_press(Message::Apply);
-        }
-        Container::new(
-            Column::new()
-                .spacing(20)
-                .padding(20)
-                .push(
-                    Column::new()
-                        .spacing(5)
-                        .push(Text::new(&self.file).size(16).color(self.palette.greyed))
-                        .push(
-                            Row::new()
-                                .spacing(20)
-                                .push(
-                                    TextInput::new(
-                                        &mut self.rename_field,
-                                        "new file name",
-                                        &self.input_value,
-                                        Message::EditFileName,
-                                    )
-                                    .padding(5)
-                                    .size(16)
-                                    .style(self.palette),
-                                )
-                                .push(
-                                    Button::new(
-                                        &mut self.browse,
-                                        Text::new("Change Dest.")
-                                            .size(16)
-                                            .horizontal_alignment(Horizontal::Center),
-                                    )
-                                    .padding(5)
-                                    .on_press(Message::Browse)
-                                    .style(self.palette),
-                                ),
-                        )
-                        .push(
-                            Text::new(&self.error_msg)
-                                .size(14)
-                                .color(self.palette.error),
-                        ),
-                )
-                .push(preview.height(Length::Fill))
-                .push(Container::new(apply_button).width(Length::Fill).center_x()),
-        )
-        .style(self.palette)
-        .into()
+            ui.add_space(10.);
+            ui.separator();
+            egui::ScrollArea::vertical().show(
+                ui, |ui| for (old, new) in self.rename.iter() {
+                    ui.label(old.to_str().unwrap_or(""));
+                    ui.strong(new.to_str().unwrap_or(""));
+                    ui.separator();
+                }
+            );
+        });
     }
 }
 
-fn main() -> iced::Result {
+
+fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
     let mut cwd = env::current_dir().unwrap();
     let file = if args.len() == 1 {
@@ -253,15 +147,10 @@ fn main() -> iced::Result {
         }
         file_path.file_name().unwrap().to_string_lossy().to_string()
     };
-    Srenamer::run(Settings {
-        window: window::Settings {
-            size: (800, 500),
-            ..Default::default()
-        },
-        flags: Flags {
-            file: file,
-            cwd: cwd,
-        },
-        ..Default::default()
-    })
+    let native_options = eframe::NativeOptions::default();
+    eframe::run_native(
+        "Simple Renamer", native_options, 
+        Box::new(|cc| Box::new(AppState::new(cc, file, cwd)))
+    ).unwrap();
+    Ok(())
 }

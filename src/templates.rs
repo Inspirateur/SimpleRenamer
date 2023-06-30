@@ -123,7 +123,7 @@ pub fn templates_in(path: PathBuf) -> HashMap<String, Vec<String>> {
 #[cfg(test)]
 mod tests {
     use crate::templates::templates;
-    use itertools::iproduct;
+    use itertools::{iproduct};
     use lipsum::lipsum_title;
     use std::collections::HashSet;
 
@@ -137,7 +137,18 @@ mod tests {
     }
 
     #[test]
-    fn multivar() {
+    fn multi_number() {
+        let filenames: Vec<String> = iproduct!(1..=3, 1..=20)
+            .map(|(s, e)| format!("Blablabla - S{}E{} - 1080p.mp4", s, e))
+            .collect();
+        let mut truth = HashSet::new();
+        truth.insert(String::from(r"Blablabla - S(\d+)E(\d+) - 1080p.mp4"));
+        let res: HashSet<String> = templates(&filenames).keys().cloned().collect();
+        assert_eq!(&truth, &res);
+    }
+
+    #[test]
+    fn multi_var() {
         let filenames: Vec<String> = iproduct!(["EN", "FR"], 1..=6)
             .map(|(lang, e)| format!("Episode {} {}.mp4", lang, e))
             .collect();
