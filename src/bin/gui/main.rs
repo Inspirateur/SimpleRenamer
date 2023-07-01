@@ -1,4 +1,4 @@
-// #![windows_subsystem = "windows"]
+#![windows_subsystem = "windows"]
 use eframe::egui;
 use anyhow::Result;
 use egui::Color32;
@@ -7,6 +7,7 @@ use nfd2::Response;
 use pathdiff::diff_paths;
 use srenamer::{apply_rename, rename_map};
 use std::{env, path::PathBuf, collections::HashMap, str::FromStr, ffi::OsStr};
+use log::error;
 
 #[derive(Default)]
 struct AppState {
@@ -136,7 +137,7 @@ fn main() -> Result<()> {
                 Response::Cancel => return Ok(()),
             },
             Err(err) => {
-                println!("{:?}", err);
+                error!(target: "simple renamer", "{:?}", err);
                 return Ok(());
             }
         }

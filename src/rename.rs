@@ -2,6 +2,7 @@ use crate::templates::templates_in;
 use itertools::Itertools;
 use regex::Regex;
 use std::{collections::HashMap, fs, io, path::PathBuf};
+use log::info;
 
 fn ambiguities(rule: &Regex, filename: &String) -> u32 {
     // count the amount of ambiguities in the filename
@@ -98,10 +99,10 @@ pub fn rename_map(cwd: &PathBuf, a: &String, b: &PathBuf) -> Vec<(PathBuf, PathB
     let templates = templates_in(cwd.clone());
     let mut res: Vec<(PathBuf, PathBuf)> = Vec::new();
     if let Some(rule) = get_rule(&templates, a) {
-        println!("rule: {}", rule);
+        info!(target: "simple renamer", "rule: {}", rule);
         let re_rule = Regex::new(&format!("^{}$", rule)).unwrap();
         let rename_rule = get_rename_str(&re_rule, a, &b_name);
-        println!("rename: {}", rename_rule);
+        info!(target: "simple renamer", "rename: {}", rename_rule);
         for file in templates.get(&rule).unwrap() {
             res.push((
                 cwd.join(file.clone()),

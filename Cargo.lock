@@ -2163,6 +2163,7 @@ dependencies = [
  "egui",
  "itertools",
  "lazy_static",
+ "log",
  "nfd2",
  "pathdiff",
  "regex",

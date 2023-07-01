@@ -1,5 +1,6 @@
 use srenamer::rename_map;
 use std::path::Path;
+use log::debug;
 
 fn main() {
     let res = rename_map(
@@ -8,6 +9,6 @@ fn main() {
         &Path::new("The Expanse S05E01 Exodus.mkv").to_path_buf(),
     );
     for (k, v) in &res {
-        println!("{:?}: {:?}", k, v);
+        debug!(target: "simple renamer", "{:?}: {:?}", k, v);
     }
 }
