@@ -5,7 +5,7 @@ use egui::Color32;
 use itertools::Itertools;
 use nfd2::Response;
 use pathdiff::diff_paths;
-use srenamer::{apply_rename, get_rule_rep, rename_map};
+use srenamer::{apply_rename, rename_map};
 use std::{env, path::PathBuf, collections::HashMap, str::FromStr, ffi::OsStr};
 
 #[derive(Default)]
