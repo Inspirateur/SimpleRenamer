@@ -17,6 +17,3 @@ cached = "*"
 dark-light = "*"
 nfd2 = "*"
 pathdiff = "*"
-
-[dev-dependencies]
-lipsum = "*"

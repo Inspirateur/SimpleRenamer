@@ -13,7 +13,7 @@ struct AppState {
     pub file: String,
     pub input: String,
     pub cwd: PathBuf,
-    pub rename: HashMap<PathBuf, PathBuf>,
+    pub rename: Vec<(PathBuf, PathBuf)>,
     pub dupes: HashMap<PathBuf, usize>,
     pub error_msg: String
 }
@@ -36,7 +36,7 @@ impl AppState {
             &self.file,
             &PathBuf::from_str(&self.input).unwrap(),
         );
-        self.dupes = self.rename.values().cloned().counts();
+        self.dupes = self.rename.iter().map(|(_old, new)| new).cloned().counts();
         let dupe_count = self.rename.len() - self.dupes.len();
         if dupe_count > 0 {
             self.error_msg = format!(

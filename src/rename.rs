@@ -62,6 +62,7 @@ fn get_rule(templates: &HashMap<String, Vec<String>>, filename: &String) -> Opti
 
 fn get_rename_str(rule: &Regex, a: &String, b: &String) -> String {
     // return the regex replacement to turn a into b
+    // extract the value of the variables
     let vars: Vec<String> = rule
         .captures(a)
         .unwrap()
@@ -69,24 +70,21 @@ fn get_rename_str(rule: &Regex, a: &String, b: &String) -> String {
         .skip(1)
         .map(|m_opt| m_opt.unwrap().as_str().to_string())
         .collect();
-    let var2idx: HashMap<&String, usize> =
-        vars.iter().enumerate().map(|(i, m)| (m, i + 1)).collect();
-    let re_match = Regex::new(
-        &vars
-            .iter()
-            .sorted_by_key(|m| -(m.len() as i32))
-            .map(|m| regex::escape(m))
-            .join("|"),
-    )
-    .unwrap();
-    re_match
-        .replace_all(b, |captures: &regex::Captures| {
-            format!("${{{}}}", var2idx[&captures[0].to_string()])
-        })
-        .to_string()
+    // find those values again in the new string, and replace them with capture group stand-in eg: ${1}, ${2}, etc.
+    let mut res = String::new();
+    let mut b_ =  b.as_str();
+    for (i, value) in vars.into_iter().enumerate() {
+        if let Some((add, remain)) = b_.split_once(&value) {
+            res += add;
+            res += &format!("${{{}}}", i+1);
+            b_ = remain;
+        }
+    }
+    res += b_;
+    res
 }
 
-pub fn rename_map(cwd: &PathBuf, a: &String, b: &PathBuf) -> HashMap<PathBuf, PathBuf> {
+pub fn rename_map(cwd: &PathBuf, a: &String, b: &PathBuf) -> Vec<(PathBuf, PathBuf)> {
     // Returns a table that maps old filename to new filename
     let mut path_b = cwd.clone();
     if let Some(parent) = b.parent() {
@@ -98,31 +96,30 @@ pub fn rename_map(cwd: &PathBuf, a: &String, b: &PathBuf) -> HashMap<PathBuf, Pa
         String::new()
     };
     let templates = templates_in(cwd.clone());
-    let mut res: HashMap<PathBuf, PathBuf> = HashMap::new();
+    let mut res: Vec<(PathBuf, PathBuf)> = Vec::new();
     if let Some(rule) = get_rule(&templates, a) {
-        println!("{}", rule);
+        println!("rule: {}", rule);
         let re_rule = Regex::new(&format!("^{}$", rule)).unwrap();
         let rename_rule = get_rename_str(&re_rule, a, &b_name);
-        println!("{}", rename_rule);
+        println!("rename: {}", rename_rule);
         for file in templates.get(&rule).unwrap() {
-            res.insert(
+            res.push((
                 cwd.join(file.clone()),
-                path_b.join(re_rule.replace(file, &rename_rule).to_string()),
-            );
+                path_b.join(re_rule.replace(file, &rename_rule).to_string())
+            ));
         }
     }
+    res.sort_by_key(|(old, _new)| old.clone());
     res
 }
 
-pub fn apply_rename(rename: &HashMap<PathBuf, PathBuf>) -> io::Result<()> {
-    if let Some(first_new_path) = rename.values().next() {
+pub fn apply_rename(rename: &Vec<(PathBuf, PathBuf)>) -> io::Result<()> {
+    for (old, new) in rename.iter() {
         // create the path if it doesn't exist
-        if let Some(first_new_parent) = first_new_path.parent() {
-            fs::create_dir_all(first_new_parent)?;
-        }
-        for (old, new) in rename.iter().sorted_by_key(|(old, _new)| *old) {
-            fs::rename(old, new)?;
-        }
+        if let Some(new_parent) = new.parent() {
+            fs::create_dir_all(new_parent)?;
+        }        
+        fs::rename(old, new)?;
     }
     Ok(())
 }

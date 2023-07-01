@@ -124,7 +124,6 @@ pub fn templates_in(path: PathBuf) -> HashMap<String, Vec<String>> {
 mod tests {
     use crate::templates::templates;
     use itertools::{iproduct};
-    use lipsum::lipsum_title;
     use std::collections::HashSet;
 
     #[test]
@@ -142,7 +141,7 @@ mod tests {
             .map(|(s, e)| format!("Blablabla - S{}E{} - 1080p.mp4", s, e))
             .collect();
         let mut truth = HashSet::new();
-        truth.insert(String::from(r"Blablabla - S(\d+)E(\d+) - 1080p.mp4"));
+        truth.insert(String::from(r"Blablabla \- S(\d+)E(\d+) \- 1080p\.mp4"));
         let res: HashSet<String> = templates(&filenames).keys().cloned().collect();
         assert_eq!(&truth, &res);
     }
@@ -160,11 +159,12 @@ mod tests {
 
     #[test]
     fn title() {
-        let filenames: Vec<String> = (1..=10)
-            .map(|e| format!("Episode {} - {}.mp4", e, lipsum_title()))
+        let titles = ["cold winter", "fresh spring", "hot summer", "wet autumn", "finale"];
+        let filenames: Vec<String> = (1..=titles.len())
+            .map(|e| format!("My Awesome Serie - Episode {} - {}.mp4", e, titles[e-1]))
             .collect();
         let mut truth = HashSet::new();
-        truth.insert(String::from(r"Episode (\d+) \- (.+)\.mp4"));
+        truth.insert(String::from(r"My Awesome Serie \- Episode (\d+) \- (.+)\.mp4"));
         let res: HashSet<String> = templates(&filenames).keys().cloned().collect();
         assert_eq!(&truth, &res);
     }
