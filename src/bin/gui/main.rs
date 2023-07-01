@@ -59,7 +59,7 @@ impl eframe::App for AppState {
                     }
                 });
                 ui.add_space(10.);
-                if ui.button("Change dest").changed() {
+                if ui.button("Change dest").clicked() {
                     match nfd2::open_pick_folder(None) {
                         Ok(response) => match response {
                             Response::Okay(folder_path) => {
