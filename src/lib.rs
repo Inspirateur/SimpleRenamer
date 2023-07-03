@@ -1,3 +1,4 @@
+mod text_histo;
 mod rename;
 mod templates;
 

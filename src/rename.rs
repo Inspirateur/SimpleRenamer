@@ -1,4 +1,4 @@
-use crate::templates::templates_in;
+use crate::{templates::templates_in, text_histo::{text_histo, TextHisto}};
 use itertools::Itertools;
 use regex::Regex;
 use std::{collections::HashMap, fs, io, path::PathBuf};
@@ -63,25 +63,40 @@ fn get_rule(templates: &HashMap<String, Vec<String>>, filename: &String) -> Opti
 
 fn get_rename_str(rule: &Regex, a: &String, b: &String) -> String {
     // return the regex replacement to turn a into b
-    // extract the value of the variables
-    let vars: Vec<String> = rule
+    // extract the value and index of the variables
+    let vars: Vec<(String, usize)> = rule
         .captures(a)
         .unwrap()
         .iter()
         .skip(1)
-        .map(|m_opt| m_opt.unwrap().as_str().to_string())
+        .filter(|m_opt| m_opt.is_some())
+        .map(|m_opt| m_opt.unwrap())
+        .map(|m| (m.as_str().to_string(), m.start()))
         .collect();
+
     // find those values again in the new string, and replace them with capture group stand-in eg: ${1}, ${2}, etc.
-    let mut res = String::new();
-    let mut b_ =  b.as_str();
-    for (i, value) in vars.into_iter().enumerate() {
-        if let Some((add, remain)) = b_.split_once(&value) {
-            res += add;
-            res += &format!("${{{}}}", i+1);
-            b_ = remain;
+    // In the new string there can be ambiguities, with values appearing mutliple times, 
+    // with use a "histogram" of every character to their left to distinguish them
+    let mut res = b.clone(); 
+    for (i, (value, start)) in vars.into_iter().enumerate() {
+        let matches = res.match_indices(&value).collect_vec();
+        let ref_histo = text_histo(&a[0..start]);
+        let mut best_match_opt = None;
+        let mut best_dist = usize::MAX;
+        for (pos, _) in matches {
+            let histo = text_histo(&b[0..pos]);
+            let dist = ref_histo.dist(&histo);
+            if dist < best_dist {
+                best_dist = dist;
+                best_match_opt = Some(pos);
+            }
+        }
+        if let Some(best_match) = best_match_opt {
+            let start = best_match as usize;
+            let end = start + value.len();
+            res.replace_range(start..end, &format!("${{{}}}", i+1));
         }
     }
-    res += b_;
     res
 }
 
@@ -99,10 +114,10 @@ pub fn rename_map(cwd: &PathBuf, a: &String, b: &PathBuf) -> Vec<(PathBuf, PathB
     let templates = templates_in(cwd.clone());
     let mut res: Vec<(PathBuf, PathBuf)> = Vec::new();
     if let Some(rule) = get_rule(&templates, a) {
-        info!(target: "simple renamer", "rule: {}", rule);
+        info!(target: "srenamer", "rule: {}", rule);
         let re_rule = Regex::new(&format!("^{}$", rule)).unwrap();
         let rename_rule = get_rename_str(&re_rule, a, &b_name);
-        info!(target: "simple renamer", "rename: {}", rename_rule);
+        info!(target: "srenamer", "rename: {}", rename_rule);
         for file in templates.get(&rule).unwrap() {
             res.push((
                 cwd.join(file.clone()),

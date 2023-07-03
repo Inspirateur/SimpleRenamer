@@ -103,8 +103,10 @@ fn templates(filenames: &Vec<String>) -> HashMap<String, Vec<String>> {
             let un_meta_rule = RE_UNESC.replace_all(&meta_rule, r"$1").into_owned();
             res.insert(un_meta_rule.clone(), Vec::new());
             for rule in rules {
-                let mut v = res.remove(rule).unwrap();
-                res.get_mut(&un_meta_rule).unwrap().append(&mut v);
+                if rule != &un_meta_rule {
+                    let mut v = res.remove(rule).unwrap();
+                    res.get_mut(&un_meta_rule).unwrap().append(&mut v);    
+                }
             }
         }
     }

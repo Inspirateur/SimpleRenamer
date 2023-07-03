@@ -9,6 +9,6 @@ fn main() {
         &Path::new("The Expanse S05E01 Exodus.mkv").to_path_buf(),
     );
     for (k, v) in &res {
-        debug!(target: "simple renamer", "{:?}: {:?}", k, v);
+        debug!(target: "srenamer", "{:?}: {:?}", k, v);
     }
 }

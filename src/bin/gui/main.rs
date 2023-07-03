@@ -1,4 +1,4 @@
-#![windows_subsystem = "windows"]
+// #![windows_subsystem = "windows"]
 use eframe::egui;
 use anyhow::Result;
 use egui::Color32;
@@ -7,7 +7,8 @@ use nfd2::Response;
 use pathdiff::diff_paths;
 use srenamer::{apply_rename, rename_map};
 use std::{env, path::PathBuf, collections::HashMap, str::FromStr, ffi::OsStr};
-use log::error;
+use log::{error, LevelFilter};
+
 
 #[derive(Default)]
 struct AppState {
@@ -120,6 +121,9 @@ impl eframe::App for AppState {
 
 
 fn main() -> Result<()> {
+    env_logger::builder()
+        .filter_module("srenamer", LevelFilter::Trace)
+        .init();
     let args: Vec<String> = env::args().collect();
     let mut cwd = env::current_dir().unwrap();
     let file = if args.len() == 1 {
@@ -137,7 +141,7 @@ fn main() -> Result<()> {
                 Response::Cancel => return Ok(()),
             },
             Err(err) => {
-                error!(target: "simple renamer", "{:?}", err);
+                error!(target: "srenamer", "{:?}", err);
                 return Ok(());
             }
         }
