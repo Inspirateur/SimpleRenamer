@@ -1,6 +1,8 @@
 # Simple Renamer
 A simple and smart bulk file renamer. Just rename 1 file and it will do the rest.
 
+*Blog post: https://teo-orthlieb.github.io/blog/simple-renamer/*
+
 ## Preview
 ![](https://github.com/Inspirateur/SimpleRenamer/blob/master/preview/batch_renamer_demo.gif) 
 
