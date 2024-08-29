@@ -201,7 +201,7 @@ mod tests {
     #[test]
     fn regex_in_title() {
         let filenames: Vec<String> = iproduct!(1..=20)
-            .map(|e| format!("[1080p] Episode {}.mkv", e))
+            .map(|(e,)| format!("[1080p] Episode {}.mkv", e))
             .collect();
         let mut truth = HashSet::new();
         truth.insert(String::from(r"\[1080p\] Episode (\d+)\.mkv"));

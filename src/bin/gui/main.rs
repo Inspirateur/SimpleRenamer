@@ -97,7 +97,7 @@ impl eframe::App for AppState {
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     if ui.button("Apply").clicked() {
                         match apply_rename(&self.rename) {
-                            Ok(()) => frame.close(),
+                            Ok(()) => ctx.send_viewport_cmd(egui::ViewportCommand::Close),
                             Err(err) => self.error_msg = format!("{}", err),
                         }
                     }
@@ -155,7 +155,7 @@ fn main() -> Result<()> {
     let native_options = eframe::NativeOptions::default();
     eframe::run_native(
         "Simple Renamer", native_options, 
-        Box::new(|cc| Box::new(AppState::new(cc, file, cwd)))
+        Box::new(|cc| Ok(Box::new(AppState::new(cc, file, cwd))))
     ).unwrap();
     Ok(())
 }
