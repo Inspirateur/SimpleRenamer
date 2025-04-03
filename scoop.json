@@ -5,7 +5,7 @@
     "license": "MIT",
     "url": "https://github.com/Inspirateur/SimpleRenamer/releases/download/1.1.0/release.zip",
     "checkver": "github",
-    "post_install": "https://github.com/inspirateur/SimpleRenamer/blob/master/post_install.ps1",
+    "post_install": "https://raw.githubusercontent.com/Inspirateur/SimpleRenamer/refs/heads/master/post_install.ps1",
     "autoupdate": {
         "url": "https://github.com/Inspirateur/SimpleRenamer/releases/download/v$version/release.zip"
     }
