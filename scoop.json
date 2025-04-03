@@ -1,0 +1,12 @@
+{
+    "version": "1.1.0",
+    "description": "A smart bulk file renamer",
+    "homepage": "https://github.com/inspirateur/SimpleRenamer",
+    "license": "MIT",
+    "url": "https://github.com/inspirateur/SimpleRenamer/releases/download/v1.1.0/release.zip",
+    "checkver": "github",
+    "post_install": "https://github.com/inspirateur/SimpleRenamer/blob/master/post_install.ps1",
+    "autoupdate": {
+        "url": "https://github.com/inspirateur/SimpleRenamer/releases/download/v$version/release.zip"
+    }
+}
