@@ -5,8 +5,11 @@
     "license": "MIT",
     "url": "https://github.com/Inspirateur/SimpleRenamer/releases/download/1.1.0/release.zip",
     "checkver": "github",
-    "post_install": "https://raw.githubusercontent.com/Inspirateur/SimpleRenamer/refs/heads/master/post_install.ps1",
     "autoupdate": {
         "url": "https://github.com/Inspirateur/SimpleRenamer/releases/download/v$version/release.zip"
-    }
+    },
+    "post_install": [
+        "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser",
+        "Invoke-RestMethod -Uri https://raw.githubusercontent.com/Inspirateur/SimpleRenamer/refs/heads/master/post_install.ps1 | Invoke-Expression"
+    ]
 }
