@@ -11,5 +11,9 @@
     "post_install": [
         "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser",
         "Invoke-RestMethod -Uri https://raw.githubusercontent.com/Inspirateur/SimpleRenamer/refs/heads/master/post_install.ps1 | Invoke-Expression"
+    ],
+    "post_uninstall": [
+        "Set-ExecutionPolicy -ExecutionPolicy Restricted -Scope CurrentUser",
+        "Invoke-RestMethod -Uri https://raw.githubusercontent.com/Inspirateur/SimpleRenamer/refs/heads/master/post_uninstall.ps1 | Invoke-Expression"
     ]
 }
