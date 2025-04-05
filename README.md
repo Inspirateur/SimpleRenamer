@@ -14,7 +14,9 @@ Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
 ```
 
 You can then install SimpleRenamer with:  
-`scoop install -s https://raw.githubusercontent.com/Inspirateur/SimpleRenamer/refs/heads/master/SimpleRenamer.json`
+```
+scoop install -s https://raw.githubusercontent.com/Inspirateur/SimpleRenamer/refs/heads/master/SimpleRenamer.json
+```
 
 This will create a "Batch Rename" entry in the context menu, if you don't want it find and open "Regedit" and delete the `HKCU:\Software\Classes\*\Shell\Batch Rename` key.
 
